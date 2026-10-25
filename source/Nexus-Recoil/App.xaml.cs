@@ -57,7 +57,9 @@ public partial class App : Application
             }
 
             settings.DisclaimerShown = true;
-            settings.Save();
+            if (!settings.Save())
+                MessageBox.Show("Settings could not be saved. Changes will only apply for this session.",
+                    "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         var mainWindow = new MainWindow(settings);

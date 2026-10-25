@@ -36,6 +36,7 @@ internal sealed class RecoilEngine
     private Thread? _recoilThread;
     private Thread? _rapidFireThread;
     private volatile bool _running = false;
+    private readonly object _rapidFireLock = new();
 
     // ── Curve state (only accessed from RecoilLoop thread) ────────────────
     private int    _shotIndex       = 0;
@@ -98,7 +99,11 @@ internal sealed class RecoilEngine
 
     public void Stop()
     {
-        _running = false;
+        lock (_rapidFireLock)
+        {
+            _running = false;
+            NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+        }
     }
 
     // ── Recoil loop ───────────────────────────────────────────────────────
@@ -186,15 +191,27 @@ internal sealed class RecoilEngine
 
             _rapidFireThread!.Priority = ThreadPriority.Normal;
 
-            while (IsEnabled && RapidFireEnabled && IsHeld(0x01) &&
-                   (!RapidFireRequireAimKey || IsHeld(AimKeyVKey)))
+            try
             {
-                NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP,   0, 0, 0, UIntPtr.Zero);
-                NativeMethods.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
-                Thread.Sleep(Math.Max(10, RapidFireRateMs));
+                while (_running && IsEnabled && RapidFireEnabled && IsHeld(0x01) &&
+                       (!RapidFireRequireAimKey || IsHeld(AimKeyVKey)))
+                {
+                    lock (_rapidFireLock)
+                    {
+                        // Stop must not release the button just before another press.
+                        if (!_running) break;
+                        NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP,   0, 0, 0, UIntPtr.Zero);
+                        NativeMethods.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
+                    }
+                    Thread.Sleep(Math.Max(10, RapidFireRateMs));
+                }
             }
-
-            _rapidFireThread!.Priority = ThreadPriority.BelowNormal;
+            finally
+            {
+                lock (_rapidFireLock)
+                    NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+                _rapidFireThread!.Priority = ThreadPriority.BelowNormal;
+            }
         }
     }
 }

@@ -108,13 +108,14 @@ internal sealed class AppSettings
         return new AppSettings();
     }
 
-    public void Save()
+    public bool Save()
     {
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             File.WriteAllText(FilePath, JsonSerializer.Serialize(this, _opts));
+            return true;
         }
-        catch { }
+        catch { return false; }
     }
 }

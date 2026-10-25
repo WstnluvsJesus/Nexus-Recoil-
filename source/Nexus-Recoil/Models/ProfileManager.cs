@@ -92,15 +92,16 @@ internal static class ProfileManager
         return new List<Profile>();
     }
 
-    public static void SaveCustomProfiles(IEnumerable<Profile> profiles)
+    public static bool SaveCustomProfiles(IEnumerable<Profile> profiles)
     {
         try
         {
             var root = new ProfilesRoot { Profiles = new List<Profile>(profiles) };
             Directory.CreateDirectory(Path.GetDirectoryName(ProfilesPath)!);
             File.WriteAllText(ProfilesPath, JsonSerializer.Serialize(root, _opts));
+            return true;
         }
-        catch { }
+        catch { return false; }
     }
 
     private sealed class ProfilesRoot

@@ -122,6 +122,14 @@ public partial class MainWindow : Window
 
     // ── Settings → UI ─────────────────────────────────────────────────────
 
+    private void SaveSettings()
+    {
+        if (!_settings.Save())
+            Dispatcher.Invoke(() => MessageBox.Show(
+                "Settings could not be saved. Changes will only apply for this session.",
+                "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error));
+    }
+
     private void LoadSettingsIntoUi()
     {
         DownSlider.Value  = 12;
@@ -189,7 +197,7 @@ public partial class MainWindow : Window
         if (_settings.CustomSoundPath != null && !File.Exists(_settings.CustomSoundPath))
         {
             _settings.CustomSoundPath = null;
-            _settings.Save();
+            SaveSettings();
         }
         _soundManager = new SoundManager(_settings.SoundEnabled, _settings.SoundVolume / 100f, _settings.CustomSoundPath);
         bool soundEnabled = _settings.SoundEnabled && SoundManager.HasAudioDevice;
@@ -256,7 +264,7 @@ public partial class MainWindow : Window
         var hex = ToHex(c);
         _settings.ThemeAccent = hex;
         SetBrush("AccentBrush", hex);
-        _settings.Save();
+        SaveSettings();
     }
 
     private void BgPicker_SelectedColorChanged(object sender,
@@ -266,7 +274,7 @@ public partial class MainWindow : Window
         var hex = ToHex(c);
         _settings.ThemeBg = hex;
         SetBrush("BgBrush", hex);
-        _settings.Save();
+        SaveSettings();
     }
 
     private void SurfacePicker_SelectedColorChanged(object sender,
@@ -276,7 +284,7 @@ public partial class MainWindow : Window
         var hex = ToHex(c);
         _settings.ThemeSurface = hex;
         SetBrush("SurfaceBrush", hex);
-        _settings.Save();
+        SaveSettings();
     }
 
     private void TextPrimPicker_SelectedColorChanged(object sender,
@@ -286,7 +294,7 @@ public partial class MainWindow : Window
         var hex = ToHex(c);
         _settings.ThemeTextPrim = hex;
         SetBrush("TextPrimBrush", hex);
-        _settings.Save();
+        SaveSettings();
     }
 
     private void TextSecPicker_SelectedColorChanged(object sender,
@@ -296,7 +304,7 @@ public partial class MainWindow : Window
         var hex = ToHex(c);
         _settings.ThemeTextSec = hex;
         SetBrush("TextSecBrush", hex);
-        _settings.Save();
+        SaveSettings();
     }
 
     private void ThemeResetOne_Click(object sender, RoutedEventArgs e)
@@ -333,7 +341,7 @@ public partial class MainWindow : Window
                 break;
         }
         _suppressColorEvents = false;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void ThemeResetAll_Click(object sender, RoutedEventArgs e)
@@ -352,7 +360,7 @@ public partial class MainWindow : Window
         TextSecPicker.SelectedColor  = ColorFromHex(defaults.ThemeTextSec);
         _suppressColorEvents = false;
         ApplyTheme(_settings);
-        _settings.Save();
+        SaveSettings();
     }
 
     // ── Update checker ────────────────────────────────────────────────────
@@ -381,7 +389,7 @@ public partial class MainWindow : Window
             if (isNewToUser)
             {
                 _settings.LastSeenVersion = tagName;
-                _settings.Save();
+                SaveSettings();
             }
 
             Dispatcher.Invoke(() =>
@@ -467,7 +475,7 @@ public partial class MainWindow : Window
         var enabled = QuickSwapToggle.IsChecked == true;
         _settings.QuickSwapEnabled         = enabled;
         QuickSwapPillsPanel.Visibility      = enabled ? Visibility.Visible : Visibility.Collapsed;
-        _settings.Save();
+        SaveSettings();
 
         UnregisterQuickSwapHotkeys();
         if (enabled) RegisterQuickSwapHotkeys();
@@ -542,7 +550,7 @@ public partial class MainWindow : Window
     {
         var enabled = StreamProofToggle.IsChecked == true;
         _settings.StreamProof = enabled;
-        _settings.Save();
+        SaveSettings();
 
         if (_mainHwnd != IntPtr.Zero)
         {
@@ -570,7 +578,7 @@ public partial class MainWindow : Window
         _settings.CurveEnabled        = enabled;
         CurveSectionPanel.Visibility  = enabled ? Visibility.Visible : Visibility.Collapsed;
         if (enabled) UpdateCurveGraph((int)RampSlider.Value);
-        _settings.Save();
+        SaveSettings();
     }
 
     private void RampSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -579,7 +587,7 @@ public partial class MainWindow : Window
         if (RampLabel != null) RampLabel.Text = $"Ramp Shots: {v}";
         _engine.CurveRampShots       = v;
         _settings.CurveRampShots     = v;
-        _settings.Save();
+        SaveSettings();
         UpdateCurveGraph(v);
     }
 
@@ -607,7 +615,7 @@ public partial class MainWindow : Window
     {
         var enabled = WatermarkToggle.IsChecked == true;
         _settings.WatermarkEnabled = enabled;
-        _settings.Save();
+        SaveSettings();
         if (enabled) ShowWatermark();
         else HideWatermark();
     }
@@ -630,7 +638,7 @@ public partial class MainWindow : Window
     {
         var enabled = SoundToggle.IsChecked == true;
         _settings.SoundEnabled = enabled;
-        _settings.Save();
+        SaveSettings();
         bool soundEnabled = enabled && SoundManager.HasAudioDevice;
         if (_soundManager != null) _soundManager.Enabled = soundEnabled;
         SoundSubPanel.Visibility = soundEnabled ? Visibility.Visible : Visibility.Collapsed;
@@ -642,7 +650,7 @@ public partial class MainWindow : Window
         SoundVolumeLabel.Text = $"Volume: {vol}%";
         if (_soundManager != null) _soundManager.Volume = vol / 100f;
         _settings.SoundVolume = vol;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void CustomSoundBtn_Click(object sender, RoutedEventArgs e)
@@ -656,7 +664,7 @@ public partial class MainWindow : Window
 
         var path = dlg.FileName;
         _settings.CustomSoundPath = path;
-        _settings.Save();
+        SaveSettings();
         if (_soundManager != null) _soundManager.CustomSoundPath = path;
 
         var fname = Path.GetFileName(path);
@@ -669,7 +677,7 @@ public partial class MainWindow : Window
     private void RemoveCustomSoundBtn_Click(object sender, RoutedEventArgs e)
     {
         _settings.CustomSoundPath = null;
-        _settings.Save();
+        SaveSettings();
         if (_soundManager != null) _soundManager.CustomSoundPath = null;
         CustomSoundNameLabel.Visibility = Visibility.Collapsed;
         RemoveCustomSoundBtn.Visibility = Visibility.Collapsed;
@@ -741,18 +749,11 @@ public partial class MainWindow : Window
                     "Confirm Overwrite",
                     MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result != MessageBoxResult.Yes) return;
-
-                existing.Down  = down;
-                existing.Up    = up;
-                existing.Right = right;
-                existing.Left  = left;
-                ProfileManager.SaveCustomProfiles(_customProfiles);
-                RefreshCustomCombo();
-                CustomCombo.SelectedItem = existing;
             }
-            else
-            {
-                var p = new Profile
+
+            var p = existing != null
+                ? WithProfileValues(existing, down, up, right, left)
+                : new Profile
                 {
                     Name      = name,
                     Down      = down,
@@ -762,12 +763,19 @@ public partial class MainWindow : Window
                     Side      = "Custom",
                     IsBuiltIn = false
                 };
-                _customProfiles.Add(p);
-                ProfileManager.SaveCustomProfiles(_customProfiles);
-                RefreshCustomCombo();
+            var proposed = new List<Profile>(_customProfiles);
+            if (existing != null)
+                proposed[proposed.IndexOf(existing)] = p;
+            else
+                proposed.Add(p);
+
+            if (!TrySaveCustomProfiles(proposed)) return;
+            RefreshCustomCombo();
+            if (existing == null)
+            {
                 PresetTabs.SelectedIndex = 2;
-                CustomCombo.SelectedItem = p;
             }
+            CustomCombo.SelectedItem = p;
         }
         catch (Exception ex) when (ex is JsonException or InvalidOperationException or IOException)
         {
@@ -777,6 +785,32 @@ public partial class MainWindow : Window
     }
 
     // ── Presets ───────────────────────────────────────────────────────────
+
+    private bool TrySaveCustomProfiles(List<Profile> proposed)
+    {
+        if (!ProfileManager.SaveCustomProfiles(proposed))
+        {
+            MessageBox.Show("Presets could not be saved. Your presets have not been changed.",
+                "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+
+        _customProfiles = proposed;
+        return true;
+    }
+
+    private static Profile WithProfileValues(Profile original, double down, double up,
+        double right, double left) => new()
+    {
+        Name      = original.Name,
+        Side      = original.Side,
+        Category  = original.Category,
+        IsBuiltIn = original.IsBuiltIn,
+        Down      = down,
+        Up        = up,
+        Right     = right,
+        Left      = left
+    };
 
     private void LoadPresets()
     {
@@ -903,7 +937,7 @@ public partial class MainWindow : Window
         DragMove();
         _settings.WindowLeft = Left;
         _settings.WindowTop  = Top;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e) =>
@@ -1040,7 +1074,7 @@ public partial class MainWindow : Window
             SensBox.Text                = v.ToString("F2");
             _engine.GlobalSensitivity   = (float)v;
             _settings.GlobalSensitivity = v;
-            _settings.Save();
+            SaveSettings();
         }
         else
         {
@@ -1055,7 +1089,7 @@ public partial class MainWindow : Window
         if (DelayLabel != null) DelayLabel.Text = $"Delay: {v}ms";
         _engine.DelayMs  = v;
         _settings.DelayMs = v;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void SensSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1065,7 +1099,7 @@ public partial class MainWindow : Window
         if (SensBox  != null) SensBox.Text    = v.ToString("F2");
         _engine.GlobalSensitivity    = (float)v;
         _settings.GlobalSensitivity  = v;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void AimKeyCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1074,7 +1108,7 @@ public partial class MainWindow : Window
         if (idx < 0 || idx >= AimKeyVKs.Length) return;
         _engine.AimKeyVKey    = AimKeyVKs[idx];
         _settings.AimKeyIndex = idx;
-        _settings.Save();
+        SaveSettings();
     }
 
     // ── Rapid fire controls ───────────────────────────────────────────────
@@ -1084,7 +1118,7 @@ public partial class MainWindow : Window
         var enabled = RapidFireToggle.IsChecked == true;
         _engine.RapidFireEnabled   = enabled;
         _settings.RapidFireEnabled = enabled;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void FireRateSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1093,7 +1127,7 @@ public partial class MainWindow : Window
         if (FireRateLabel != null) FireRateLabel.Text = $"Fire Rate: {v}ms";
         _engine.RapidFireRateMs    = v;
         _settings.RapidFireRateMs  = v;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void RapidFireAimKeyChk_Click(object sender, RoutedEventArgs e)
@@ -1101,7 +1135,7 @@ public partial class MainWindow : Window
         var req = RapidFireAimKeyChk.IsChecked == true;
         _engine.RapidFireRequireAimKey   = req;
         _settings.RapidFireRequireAimKey = req;
-        _settings.Save();
+        SaveSettings();
     }
 
     // ── Humanization controls ─────────────────────────────────────────────
@@ -1112,7 +1146,7 @@ public partial class MainWindow : Window
         _engine.HumanizationEnabled      = enabled;
         _settings.HumanizationEnabled    = enabled;
         HumanizationPanel.Visibility     = enabled ? Visibility.Visible : Visibility.Collapsed;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void HumanStrengthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1121,7 +1155,7 @@ public partial class MainWindow : Window
         if (HumanStrengthLabel != null) HumanStrengthLabel.Text = $"Strength: {v}%";
         _engine.HumanizationStrength    = v;
         _settings.HumanizationStrength  = v;
-        _settings.Save();
+        SaveSettings();
     }
 
     // ── Burst mode controls ───────────────────────────────────────────────
@@ -1132,7 +1166,7 @@ public partial class MainWindow : Window
         _engine.BurstModeEnabled       = enabled;
         _settings.BurstModeEnabled     = enabled;
         BurstModePanel.Visibility      = enabled ? Visibility.Visible : Visibility.Collapsed;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void BurstShotsSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1141,7 +1175,7 @@ public partial class MainWindow : Window
         if (BurstShotsLabel != null) BurstShotsLabel.Text = $"Shots: {v}";
         _engine.BurstShots    = v;
         _settings.BurstShots  = v;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void BurstAutoResetChk_Click(object sender, RoutedEventArgs e)
@@ -1149,7 +1183,7 @@ public partial class MainWindow : Window
         var autoReset = BurstAutoResetChk.IsChecked == true;
         _engine.BurstAutoReset    = autoReset;
         _settings.BurstAutoReset  = autoReset;
-        _settings.Save();
+        SaveSettings();
     }
 
     private void BurstResetBtn_Click(object sender, RoutedEventArgs e)
@@ -1164,7 +1198,7 @@ public partial class MainWindow : Window
         var enabled = TooltipsToggle.IsChecked == true;
         _tooltipsEnabled          = enabled;
         _settings.TooltipsEnabled = enabled;
-        _settings.Save();
+        SaveSettings();
     }
 
     // ── Preset tab / combo events ─────────────────────────────────────────
@@ -1219,7 +1253,7 @@ public partial class MainWindow : Window
         if (profile == null) return;
         _settings.LastProfileName = profile.Name;
         _settings.LastProfileSide = profile.Side;
-        _settings.Save();
+        SaveSettings();
     }
 
     // ── Preset buttons ────────────────────────────────────────────────────
@@ -1238,11 +1272,13 @@ public partial class MainWindow : Window
     {
         var p = GetSelectedProfile();
         if (p == null || p.IsBuiltIn) return;
-        p.Down  = DownSlider.Value;
-        p.Up    = UpSlider.Value;
-        p.Right = RightSlider.Value;
-        p.Left  = LeftSlider.Value;
-        ProfileManager.SaveCustomProfiles(_customProfiles);
+        var updated = WithProfileValues(p, DownSlider.Value, UpSlider.Value,
+            RightSlider.Value, LeftSlider.Value);
+        var proposed = new List<Profile>(_customProfiles);
+        proposed[proposed.IndexOf(p)] = updated;
+        if (!TrySaveCustomProfiles(proposed)) return;
+        RefreshCustomCombo();
+        CustomCombo.SelectedItem = updated;
     }
 
     private void NewBtn_Click(object sender, RoutedEventArgs e)
@@ -1260,8 +1296,8 @@ public partial class MainWindow : Window
             Side      = "Custom",
             IsBuiltIn = false
         };
-        _customProfiles.Add(p);
-        ProfileManager.SaveCustomProfiles(_customProfiles);
+        var proposed = new List<Profile>(_customProfiles) { p };
+        if (!TrySaveCustomProfiles(proposed)) return;
         RefreshCustomCombo();
         PresetTabs.SelectedIndex = 2;
         CustomCombo.SelectedItem = p;
@@ -1271,8 +1307,9 @@ public partial class MainWindow : Window
     {
         var p = GetSelectedProfile();
         if (p == null || p.IsBuiltIn) return;
-        _customProfiles.Remove(p);
-        ProfileManager.SaveCustomProfiles(_customProfiles);
+        var proposed = new List<Profile>(_customProfiles);
+        proposed.Remove(p);
+        if (!TrySaveCustomProfiles(proposed)) return;
         RefreshCustomCombo();
         if (_customProfiles.Count > 0) CustomCombo.SelectedIndex = 0;
         UpdatePresetButtons();
@@ -1331,7 +1368,7 @@ public partial class MainWindow : Window
             case 3: _settings.NextPresetKey = vk; break;
             case 4: _settings.PrevPresetKey = vk; break;
         }
-        _settings.Save();
+        SaveSettings();
         StopListening();
     }
 
