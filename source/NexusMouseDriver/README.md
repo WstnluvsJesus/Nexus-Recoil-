@@ -1,7 +1,8 @@
 # Nexus Virtual Mouse (Windows x64)
 
 An optional KMDF driver uses Microsoft's Virtual HID Framework (VHF) to expose a
-relative mouse. Start NexusRecoil with `--kernel-mouse` to send movement and left
+relative mouse on Windows 10 build 16299 or newer, including Windows 11.
+Start NexusRecoil with `--kernel-mouse` to send movement and left
 button reports through this device. Without that option, the app uses its existing
 Windows input APIs. Keyboard hotkeys and held-key detection remain in user mode.
 

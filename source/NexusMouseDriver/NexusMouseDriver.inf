@@ -8,9 +8,9 @@ DriverVer=10/25/2026,1.0.0.0
 PnpLockdown=1
 
 [Manufacturer]
-%Provider%=Models,NTamd64.10.0
+%Provider%=Models,NTamd64.10.0...16299
 
-[Models.NTamd64.10.0]
+[Models.NTamd64.10.0...16299]
 %DeviceDescription%=Install,Root\NexusVirtualMouse
 
 [DestinationDirs]
