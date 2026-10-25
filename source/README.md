@@ -52,3 +52,6 @@ MIT — see [LICENSE](LICENSE)
 See [Nexus Virtual Mouse](NexusMouseDriver/README.md) for the Windows WDK driver,
 build/signing steps, and the `--kernel-mouse` launch option. Windows driver validation
 is still required before using this backend.
+
+For the optional third-party Interception backend, see [Interception setup](INTERCEPTION.md)
+and launch with `--interception` after installing its driver and x64 library.

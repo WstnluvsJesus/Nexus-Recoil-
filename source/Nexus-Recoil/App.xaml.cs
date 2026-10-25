@@ -63,16 +63,26 @@ public partial class App : Application
         }
 
         IMouseOutput? mouse = null;
-        if (e.Args.Contains("--kernel-mouse", StringComparer.OrdinalIgnoreCase))
+        bool kernelMouse = e.Args.Contains("--kernel-mouse", StringComparer.OrdinalIgnoreCase);
+        bool interception = e.Args.Contains("--interception", StringComparer.OrdinalIgnoreCase);
+        if (kernelMouse && interception)
         {
-            try { mouse = new KernelMouseOutput(); }
-            catch (System.ComponentModel.Win32Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Mouse Driver Unavailable",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                Shutdown(1);
-                return;
-            }
+            MessageBox.Show("Choose either --kernel-mouse or --interception.", "Mouse Output",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
+        try
+        {
+            if (kernelMouse) mouse = new KernelMouseOutput();
+            else if (interception) mouse = new InterceptionMouseOutput();
+        }
+        catch (System.ComponentModel.Win32Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Mouse Driver Unavailable",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+            return;
         }
 
         MainWindow mainWindow;
