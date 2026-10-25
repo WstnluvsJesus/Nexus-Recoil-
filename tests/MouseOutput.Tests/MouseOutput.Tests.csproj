@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../source/Nexus-Recoil/Core/RecoilEngine.cs" Link="RecoilEngine.cs" />
+    <Compile Include="../../source/Nexus-Recoil/Core/MouseOutput.cs" Link="MouseOutput.cs" />
+  </ItemGroup>
+</Project>

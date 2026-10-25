@@ -62,7 +62,26 @@ public partial class App : Application
                     "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        var mainWindow = new MainWindow(settings);
+        IMouseOutput? mouse = null;
+        if (e.Args.Contains("--kernel-mouse", StringComparer.OrdinalIgnoreCase))
+        {
+            try { mouse = new KernelMouseOutput(); }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Mouse Driver Unavailable",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown(1);
+                return;
+            }
+        }
+
+        MainWindow mainWindow;
+        try { mainWindow = new MainWindow(settings, mouse); }
+        catch
+        {
+            mouse?.Dispose();
+            throw;
+        }
         MainWindow = mainWindow;
         // EnsureHandle creates the HWND (registers hotkeys) without showing the window
         new System.Windows.Interop.WindowInteropHelper(mainWindow).EnsureHandle();

@@ -46,3 +46,9 @@ You are solely responsible for ensuring your use of this software complies with 
 ## License
 
 MIT — see [LICENSE](LICENSE)
+
+## Optional kernel mouse driver
+
+See [Nexus Virtual Mouse](NexusMouseDriver/README.md) for the Windows WDK driver,
+build/signing steps, and the `--kernel-mouse` launch option. Windows driver validation
+is still required before using this backend.

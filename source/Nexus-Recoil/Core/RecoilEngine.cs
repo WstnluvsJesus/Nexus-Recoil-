@@ -1,8 +1,8 @@
-using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace Nexus_Recoil.Core;
 
-internal sealed class RecoilEngine
+internal sealed class RecoilEngine : IDisposable
 {
     // ── Recoil state ──────────────────────────────────────────────────────
     public volatile float Down       = 12f;
@@ -48,30 +48,35 @@ internal sealed class RecoilEngine
     // ── Humanization RNG ──────────────────────────────────────────────────
     private Random _humanRng = new Random();
 
-    // ── mouse_event flags for rapid fire ──────────────────────────────────
-    private const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
-    private const uint MOUSEEVENTF_LEFTUP   = 0x0004;
+    private readonly IMouseOutput _mouse;
+    private int _failureReported;
+    public event Action<string>? OutputFailed;
+
+    public RecoilEngine(IMouseOutput? mouse = null) => _mouse = mouse ?? new WindowsMouseOutput();
 
     private static bool IsHeld(int vk) =>
         (NativeMethods.GetAsyncKeyState(vk) & 0x8000) != 0;
 
-    // ── Mouse movement ────────────────────────────────────────────────────
-
-    private static void MoveMouse(int x, int y)
+    private void RunWorker(ThreadStart worker)
     {
-        var input = new NativeMethods.INPUT
+        try { worker(); }
+        catch (Exception ex) when (ex is Win32Exception or ObjectDisposedException)
         {
-            type = NativeMethods.INPUT_MOUSE,
-            mi   = new NativeMethods.MOUSEINPUT
-            {
-                dx          = x,
-                dy          = y,
-                dwFlags     = NativeMethods.MOUSEEVENTF_MOVE,
-                time        = 0,
-                dwExtraInfo = IntPtr.Zero
-            }
-        };
-        NativeMethods.SendInput(1, new[] { input }, Marshal.SizeOf<NativeMethods.INPUT>());
+            HandleOutputFailure(ex);
+        }
+    }
+
+    private void HandleOutputFailure(Exception ex)
+    {
+        bool wasRunning = _running;
+        _running = false;
+        _mouse.Dispose();
+        if (wasRunning)
+        {
+            IsEnabled = false;
+            if (Interlocked.Exchange(ref _failureReported, 1) == 0)
+                OutputFailed?.Invoke(ex.Message);
+        }
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────
@@ -80,7 +85,7 @@ internal sealed class RecoilEngine
     {
         _running = true;
 
-        _recoilThread = new Thread(RecoilLoop)
+        _recoilThread = new Thread(() => RunWorker(RecoilLoop))
         {
             IsBackground = true,
             Name         = "RecoilLoop",
@@ -88,7 +93,7 @@ internal sealed class RecoilEngine
         };
         _recoilThread.Start();
 
-        _rapidFireThread = new Thread(RapidFireLoop)
+        _rapidFireThread = new Thread(() => RunWorker(RapidFireLoop))
         {
             IsBackground = true,
             Name         = "RapidFireLoop",
@@ -102,8 +107,24 @@ internal sealed class RecoilEngine
         lock (_rapidFireLock)
         {
             _running = false;
-            NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+            ReleaseButton();
         }
+    }
+
+    private void ReleaseButton()
+    {
+        try { _mouse.SetLeftButton(false); }
+        catch (Exception ex) when (ex is Win32Exception or ObjectDisposedException)
+        {
+            HandleOutputFailure(ex);
+        }
+    }
+
+    public void Dispose()
+    {
+        Stop();
+        // Closing the handle also releases driver state if a worker is sleeping.
+        _mouse.Dispose();
     }
 
     // ── Recoil loop ───────────────────────────────────────────────────────
@@ -135,7 +156,7 @@ internal sealed class RecoilEngine
             _curveMultiplier = 0;
             _humanRng = new Random();
 
-            while (IsEnabled && IsHeld(AimKeyVKey) && IsHeld(0x01))
+            while (_running && IsEnabled && IsHeld(AimKeyVKey) && IsHeld(0x01))
             {
                 if (BurstModeEnabled && _burstShotIndex >= BurstShots)
                 {
@@ -162,7 +183,7 @@ internal sealed class RecoilEngine
                 finalX = Math.Clamp(finalX, -20, 20);
                 finalY = Math.Clamp(finalY, -20, 20);
 
-                MoveMouse(finalX, finalY);
+                _mouse.Move(finalX, finalY);
 
                 _shotIndex++;
                 _burstShotIndex++;
@@ -200,8 +221,8 @@ internal sealed class RecoilEngine
                     {
                         // Stop must not release the button just before another press.
                         if (!_running) break;
-                        NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP,   0, 0, 0, UIntPtr.Zero);
-                        NativeMethods.mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
+                        _mouse.SetLeftButton(false);
+                        _mouse.SetLeftButton(true);
                     }
                     Thread.Sleep(Math.Max(10, RapidFireRateMs));
                 }
@@ -209,7 +230,7 @@ internal sealed class RecoilEngine
             finally
             {
                 lock (_rapidFireLock)
-                    NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+                    ReleaseButton();
                 _rapidFireThread!.Priority = ThreadPriority.BelowNormal;
             }
         }

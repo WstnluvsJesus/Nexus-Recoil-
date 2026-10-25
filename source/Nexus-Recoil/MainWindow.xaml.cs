@@ -20,7 +20,7 @@ public partial class MainWindow : Window
     // ── State ─────────────────────────────────────────────────────────────
     private readonly AppSettings  _settings;
     private bool _settingsSaveWarningShown;
-    private readonly RecoilEngine _engine = new();
+    private readonly RecoilEngine _engine;
 
     private List<Profile> _customProfiles = new();
     private int _listeningTarget = -1;  // 0=toggle, 1=enable, 2=disable, 3=next, 4=prev
@@ -56,9 +56,16 @@ public partial class MainWindow : Window
 
     // ── Construction ──────────────────────────────────────────────────────
 
-    internal MainWindow(AppSettings settings)
+    internal MainWindow(AppSettings settings, IMouseOutput? mouse = null)
     {
         _settings = settings;
+        _engine = new RecoilEngine(mouse);
+        _engine.OutputFailed += message => Dispatcher.BeginInvoke(new Action(() =>
+        {
+            SetActive(false);
+            MessageBox.Show(message + " Restart the app after reconnecting the driver.",
+                "Mouse Output Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        }));
         InitializeComponent();
 
         Left = settings.WindowLeft;
@@ -115,7 +122,7 @@ public partial class MainWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _hwndSource?.RemoveHook(QuickSwapWndProc);
-        _engine.Stop();
+        _engine.Dispose();
         _watermarkWindow?.Close();
         _soundManager?.Dispose();
         base.OnClosed(e);
