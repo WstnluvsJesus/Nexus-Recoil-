@@ -16,7 +16,18 @@ internal static class HotkeyManager
     private static bool _quickSwapEnabled;
 
     // Set to true while the UI is capturing a key press to suppress hotkey actions.
-    public static bool IsListening { get; set; }
+    private static bool _isListening;
+    private static int _listeningGeneration;
+    public static bool IsListening
+    {
+        get => _isListening;
+        set
+        {
+            if (_isListening == value) return;
+            _isListening = value;
+            _listeningGeneration++;
+        }
+    }
 
     public static event Action? ToggleUiPressed;
     public static event Action? EnablePressed;
@@ -71,22 +82,27 @@ internal static class HotkeyManager
             var vk = Marshal.ReadInt32(lParam);
             if (IsListening)
             {
-                Application.Current?.Dispatcher.Invoke(() => KeyCaptured?.Invoke(vk));
+                var generation = _listeningGeneration;
+                Application.Current?.Dispatcher.BeginInvoke(() =>
+                {
+                    if (IsListening && generation == _listeningGeneration)
+                        KeyCaptured?.Invoke(vk);
+                });
             }
             else
             {
                 if (vk == _toggleKey)
-                    Application.Current?.Dispatcher.Invoke(() => ToggleUiPressed?.Invoke());
+                    Application.Current?.Dispatcher.BeginInvoke(() => ToggleUiPressed?.Invoke());
                 else if (vk == _enableKey)
-                    Application.Current?.Dispatcher.Invoke(() => EnablePressed?.Invoke());
+                    Application.Current?.Dispatcher.BeginInvoke(() => EnablePressed?.Invoke());
                 else if (vk == _disableKey)
-                    Application.Current?.Dispatcher.Invoke(() => DisablePressed?.Invoke());
+                    Application.Current?.Dispatcher.BeginInvoke(() => DisablePressed?.Invoke());
                 else if (_quickSwapEnabled)
                 {
                     if (vk == _nextKey)
-                        Application.Current?.Dispatcher.Invoke(() => CyclePresetPressed?.Invoke(1));
+                        Application.Current?.Dispatcher.BeginInvoke(() => CyclePresetPressed?.Invoke(1));
                     else if (vk == _prevKey)
-                        Application.Current?.Dispatcher.Invoke(() => CyclePresetPressed?.Invoke(-1));
+                        Application.Current?.Dispatcher.BeginInvoke(() => CyclePresetPressed?.Invoke(-1));
                 }
             }
         }

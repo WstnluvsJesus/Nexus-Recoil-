@@ -14,7 +14,8 @@ internal static class ProfileManager
     };
 
     private static readonly string ProfilesPath =
-        Path.Combine(AppContext.BaseDirectory, "profiles.json");
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "NexusRecoil", "profiles.json");
 
     // ── Attacker presets ──────────────────────────────────────────────────────
 
@@ -70,9 +71,11 @@ internal static class ProfileManager
     {
         try
         {
-            if (File.Exists(ProfilesPath))
+            var loadPath = File.Exists(ProfilesPath) ? ProfilesPath
+                : Path.Combine(AppContext.BaseDirectory, "profiles.json");
+            if (File.Exists(loadPath))
             {
-                var json = File.ReadAllText(ProfilesPath);
+                var json = File.ReadAllText(loadPath);
                 var root = JsonSerializer.Deserialize<ProfilesRoot>(json, _opts);
                 if (root?.Profiles != null)
                 {
@@ -94,6 +97,7 @@ internal static class ProfileManager
         try
         {
             var root = new ProfilesRoot { Profiles = new List<Profile>(profiles) };
+            Directory.CreateDirectory(Path.GetDirectoryName(ProfilesPath)!);
             File.WriteAllText(ProfilesPath, JsonSerializer.Serialize(root, _opts));
         }
         catch { }

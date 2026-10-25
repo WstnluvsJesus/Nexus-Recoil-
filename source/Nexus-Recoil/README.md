@@ -6,7 +6,7 @@ A lightweight mouse recoil compensation tool for Rainbow Six Siege. It moves you
 
 ## Quick Start
 
-1. **Launch** `Nexus-Recoil.exe`
+1. **Launch** `NexusRecoil.exe`
 2. Press **Insert** to open the UI
 3. Pick the **Attackers** or **Defenders** tab in the Weapon Presets section
 4. Select your weapon from the dropdown and click **Load**
@@ -33,7 +33,7 @@ A lightweight mouse recoil compensation tool for Rainbow Six Siege. It moves you
 2. In the **Hotkeys** section, click the pill button next to the hotkey you want to change (e.g. "Insert")
 3. The button shows **"Press any key..."** — press the new key
 4. Press **Escape** at any point to cancel
-5. The new binding is saved automatically to `settings.json`
+5. The new binding is saved automatically to `%APPDATA%\NexusRecoil\settings.json`
 
 ---
 
@@ -63,7 +63,10 @@ Built-in presets for all Attackers and Defenders weapons are pre-loaded with tun
 1. Adjust the sliders to your liking
 2. Click **New** in the Weapon Presets section
 3. Enter a name and click **OK**
-4. The preset appears in the **Custom** tab and is saved to `profiles.json`
+4. The preset appears in the **Custom** tab and is saved to `%APPDATA%\NexusRecoil\profiles.json`
+
+Existing `settings.json` and `profiles.json` files beside the executable are read
+when no per-user file exists. Subsequent saves use the per-user folder.
 
 ### Saving changes to a custom preset
 1. Select your custom preset in the **Custom** tab

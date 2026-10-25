@@ -22,10 +22,8 @@ public partial class WatermarkOverlay : Window
         NativeMethods.SetWindowPos(
             hwnd,
             NativeMethods.HWND_TOPMOST,
-            (int)this.Left,
-            (int)this.Top,
-            (int)this.Width,
-            (int)this.Height,
+            0, 0, 0, 0,
+            NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE |
             NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_SHOWWINDOW);
     }
 

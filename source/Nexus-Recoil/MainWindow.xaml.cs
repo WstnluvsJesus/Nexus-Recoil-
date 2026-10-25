@@ -63,14 +63,16 @@ public partial class MainWindow : Window
         Left = settings.WindowLeft;
         Top  = settings.WindowTop;
 
-        // Reset saved position if it is outside the current screen bounds
-        double screenW = SystemParameters.PrimaryScreenWidth;
-        double screenH = SystemParameters.PrimaryScreenHeight;
-        if (settings.WindowLeft < 0 || settings.WindowLeft > screenW ||
-            settings.WindowTop  < 0 || settings.WindowTop  > screenH)
+        // Preserve positions on secondary monitors, including negative coordinates.
+        double screenLeft = SystemParameters.VirtualScreenLeft;
+        double screenTop = SystemParameters.VirtualScreenTop;
+        double screenRight = screenLeft + SystemParameters.VirtualScreenWidth;
+        double screenBottom = screenTop + SystemParameters.VirtualScreenHeight;
+        if (settings.WindowLeft < screenLeft || settings.WindowLeft >= screenRight ||
+            settings.WindowTop < screenTop || settings.WindowTop >= screenBottom)
         {
-            Left = (screenW - Width)  / 2;
-            Top  = (screenH - Height) / 2;
+            Left = (SystemParameters.PrimaryScreenWidth - Width) / 2;
+            Top  = (SystemParameters.PrimaryScreenHeight - Height) / 2;
         }
 
         ApplyTheme(settings);
@@ -190,14 +192,14 @@ public partial class MainWindow : Window
             _settings.Save();
         }
         _soundManager = new SoundManager(_settings.SoundEnabled, _settings.SoundVolume / 100f, _settings.CustomSoundPath);
+        bool soundEnabled = _settings.SoundEnabled && SoundManager.HasAudioDevice;
+        _soundManager.Enabled = soundEnabled;
         if (!SoundManager.HasAudioDevice)
         {
-            _settings.SoundEnabled    = false;
-            _soundManager.Enabled     = false;
             NoAudioDeviceLabel.Visibility = System.Windows.Visibility.Visible;
         }
-        SoundToggle.IsChecked       = _settings.SoundEnabled;
-        SoundSubPanel.Visibility    = _settings.SoundEnabled ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        SoundToggle.IsChecked       = soundEnabled;
+        SoundSubPanel.Visibility    = soundEnabled ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         SoundVolumeSlider.Value     = Math.Clamp(_settings.SoundVolume, 0, 100);
         if (_settings.CustomSoundPath != null)
         {
@@ -629,8 +631,9 @@ public partial class MainWindow : Window
         var enabled = SoundToggle.IsChecked == true;
         _settings.SoundEnabled = enabled;
         _settings.Save();
-        if (_soundManager != null) _soundManager.Enabled = enabled;
-        SoundSubPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
+        bool soundEnabled = enabled && SoundManager.HasAudioDevice;
+        if (_soundManager != null) _soundManager.Enabled = soundEnabled;
+        SoundSubPanel.Visibility = soundEnabled ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void SoundVolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1170,13 +1173,6 @@ public partial class MainWindow : Window
     {
         // Ignore SelectionChanged events that bubble up from child ComboBoxes
         if (!ReferenceEquals(e.Source, PresetTabs)) return;
-
-        switch (PresetTabs.SelectedIndex)
-        {
-            case 0: AttackerCombo.ItemsSource = ProfileManager.GetAttackerItems(); break;
-            case 1: DefenderCombo.ItemsSource = ProfileManager.GetDefenderItems(); break;
-            case 2: RefreshCustomCombo(); break;
-        }
 
         UpdatePresetButtons();
     }

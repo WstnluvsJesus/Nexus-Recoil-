@@ -81,7 +81,8 @@ internal sealed class AppSettings
     // ── Persistence ───────────────────────────────────────────────────────
     [JsonIgnore]
     private static readonly string FilePath =
-        Path.Combine(AppContext.BaseDirectory, "settings.json");
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "NexusRecoil", "settings.json");
 
     private static readonly JsonSerializerOptions _opts = new()
     {
@@ -94,9 +95,12 @@ internal sealed class AppSettings
     {
         try
         {
-            if (File.Exists(FilePath))
+            // Keep existing portable-install preferences until the first per-user save.
+            var loadPath = File.Exists(FilePath) ? FilePath
+                : Path.Combine(AppContext.BaseDirectory, "settings.json");
+            if (File.Exists(loadPath))
             {
-                var json = File.ReadAllText(FilePath);
+                var json = File.ReadAllText(loadPath);
                 return JsonSerializer.Deserialize<AppSettings>(json, _opts) ?? new AppSettings();
             }
         }
@@ -108,6 +112,7 @@ internal sealed class AppSettings
     {
         try
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             File.WriteAllText(FilePath, JsonSerializer.Serialize(this, _opts));
         }
         catch { }
