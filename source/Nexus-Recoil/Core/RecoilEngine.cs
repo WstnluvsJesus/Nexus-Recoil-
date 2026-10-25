@@ -177,7 +177,7 @@ internal sealed class RecoilEngine
     {
         while (_running)
         {
-            if (!RapidFireEnabled || !IsHeld(0x01) ||
+            if (!IsEnabled || !RapidFireEnabled || !IsHeld(0x01) ||
                 (RapidFireRequireAimKey && !IsHeld(AimKeyVKey)))
             {
                 Thread.Sleep(1);
@@ -186,7 +186,7 @@ internal sealed class RecoilEngine
 
             _rapidFireThread!.Priority = ThreadPriority.Normal;
 
-            while (RapidFireEnabled && IsHeld(0x01) &&
+            while (IsEnabled && RapidFireEnabled && IsHeld(0x01) &&
                    (!RapidFireRequireAimKey || IsHeld(AimKeyVKey)))
             {
                 NativeMethods.mouse_event(MOUSEEVENTF_LEFTUP,   0, 0, 0, UIntPtr.Zero);
