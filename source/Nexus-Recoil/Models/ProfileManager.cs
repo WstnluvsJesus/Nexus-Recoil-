@@ -97,8 +97,7 @@ internal static class ProfileManager
         try
         {
             var root = new ProfilesRoot { Profiles = new List<Profile>(profiles) };
-            Directory.CreateDirectory(Path.GetDirectoryName(ProfilesPath)!);
-            File.WriteAllText(ProfilesPath, JsonSerializer.Serialize(root, _opts));
+            AtomicFile.WriteAllText(ProfilesPath, JsonSerializer.Serialize(root, _opts));
             return true;
         }
         catch { return false; }

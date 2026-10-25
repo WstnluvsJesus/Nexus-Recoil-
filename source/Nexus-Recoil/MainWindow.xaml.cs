@@ -19,6 +19,7 @@ public partial class MainWindow : Window
 {
     // ── State ─────────────────────────────────────────────────────────────
     private readonly AppSettings  _settings;
+    private bool _settingsSaveWarningShown;
     private readonly RecoilEngine _engine = new();
 
     private List<Profile> _customProfiles = new();
@@ -124,10 +125,21 @@ public partial class MainWindow : Window
 
     private void SaveSettings()
     {
-        if (!_settings.Save())
-            Dispatcher.Invoke(() => MessageBox.Show(
+        bool saved = _settings.Save();
+        Dispatcher.Invoke(() =>
+        {
+            if (saved)
+            {
+                _settingsSaveWarningShown = false;
+                return;
+            }
+
+            if (_settingsSaveWarningShown) return;
+            _settingsSaveWarningShown = true;
+            MessageBox.Show(
                 "Settings could not be saved. Changes will only apply for this session.",
-                "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error));
+                "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        });
     }
 
     private void LoadSettingsIntoUi()

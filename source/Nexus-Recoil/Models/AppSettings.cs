@@ -112,8 +112,7 @@ internal sealed class AppSettings
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-            File.WriteAllText(FilePath, JsonSerializer.Serialize(this, _opts));
+            AtomicFile.WriteAllText(FilePath, JsonSerializer.Serialize(this, _opts));
             return true;
         }
         catch { return false; }
