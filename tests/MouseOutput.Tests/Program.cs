@@ -122,6 +122,7 @@ using (var engine = new RecoilEngine(backend) { IsEnabled = true })
 Check(disconnected.Destroyed == 1 && disconnected.Disposed == 1, "Engine failure closes Interception context");
 
 assertions += VdeviceTests.Run();
+assertions += SwitchableOutputTests.Run();
 Console.WriteLine($"Passed {assertions} mouse output assertions.");
 
 sealed class FakeOutput : IMouseOutput

@@ -346,6 +346,25 @@
                         <!-- ─── TAB 3: Settings ────────────────────────── -->
                         <TabItem Header="Settings" Style="{StaticResource NxTabItem}">
                             <StackPanel Margin="0,10,0,10">
+                                <Border Background="{DynamicResource SurfaceBrush}"
+                                        CornerRadius="5" Padding="10,8" Margin="0,0,0,14">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="Use Vdevice driver" Foreground="{DynamicResource TextPrimBrush}"
+                                                       FontSize="11" VerticalAlignment="Center"/>
+                                            <ToggleButton x:Name="DriverToggle" Grid.Column="1"
+                                                          Style="{StaticResource NxToggle}"
+                                                          ToolTip="On: Vdevice driver. Off: original Windows input. Switching leaves the engine inactive."
+                                                          Click="DriverToggle_Click"/>
+                                        </Grid>
+                                        <TextBlock Text="On: Vdevice · Off: original input" Margin="0,6,0,0"
+                                                   FontSize="10" Foreground="{DynamicResource TextSecBrush}"/>
+                                    </StackPanel>
+                                </Border>
 
                                 <!-- Aim key + delay -->
                                 <DockPanel Margin="0,0,0,8">

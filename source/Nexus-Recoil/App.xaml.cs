@@ -78,13 +78,19 @@ public partial class App : Application
             if (vdevice) mouse = new VdeviceMouseOutput();
             else if (kernelMouse) mouse = new KernelMouseOutput();
             else if (interception) mouse = new InterceptionMouseOutput();
+            else if (settings.UseVdeviceDriver) mouse = new VdeviceMouseOutput();
         }
         catch (System.ComponentModel.Win32Exception ex)
         {
             MessageBox.Show(ex.Message, "Mouse Driver Unavailable",
                 MessageBoxButton.OK, MessageBoxImage.Error);
-            Shutdown(1);
-            return;
+            if (vdevice || kernelMouse || interception)
+            {
+                Shutdown(1);
+                return;
+            }
+            MessageBox.Show("The saved Vdevice mode could not start. Original Windows input is selected for this session. " +
+                "You can retry using the toggle in Settings.", "Mouse Output", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         MainWindow mainWindow;

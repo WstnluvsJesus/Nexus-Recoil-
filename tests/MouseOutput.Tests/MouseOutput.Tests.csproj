@@ -11,5 +11,8 @@
     <Compile Include="../../source/Nexus-Recoil/Core/MouseOutput.cs" Link="MouseOutput.cs" />
     <Compile Include="../../source/Nexus-Recoil/Core/InterceptionMouseOutput.cs" Link="InterceptionMouseOutput.cs" />
     <Compile Include="../../source/Nexus-Recoil/Core/VdeviceMouseOutput.cs" Link="VdeviceMouseOutput.cs" />
+    <Compile Include="../../source/Nexus-Recoil/Core/SwitchableMouseOutput.cs" Link="SwitchableMouseOutput.cs" />
+    <Compile Include="../../source/Nexus-Recoil/Models/AppSettings.cs" Link="AppSettings.cs" />
+    <Compile Include="../../source/Nexus-Recoil/Models/AtomicFile.cs" Link="AtomicFile.cs" />
   </ItemGroup>
 </Project>

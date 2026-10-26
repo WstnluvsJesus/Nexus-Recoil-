@@ -6,6 +6,8 @@ namespace Nexus_Recoil.Models;
 
 internal sealed class AppSettings
 {
+    public bool UseVdeviceDriver { get; set; } = false;
+
     // ── Hotkeys ───────────────────────────────────────────────────────────
     public int ToggleUiKey { get; set; } = 45;   // Insert
     public int EnableKey   { get; set; } = 112;  // F1

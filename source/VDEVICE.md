@@ -58,6 +58,20 @@ The bridge DLL is ordinary user-mode code and does not require kernel driver sig
 Keep it beside the executable. A plain .NET solution build does not build this C++
 bridge; the existing app can still run its other modes without the bridge.
 
+## In-app toggle
+
+In **Settings**, turn **Use Vdevice driver** on for Vdevice or off for the
+original Windows input. Switching takes effect immediately, releases the old
+backend and leaves the engine inactive. Enable the engine again when ready.
+The selected preference is saved for the next launch, so no command-line option
+is needed. If opening Vdevice fails, the current mode is retained and an error is
+shown. A saved driver mode that cannot start reports the error and opens with
+original input for that session so you can change the setting or retry.
+
+Explicit legacy `--kernel-mouse` and `--interception` modes disable this toggle;
+restart without those options to use it. An output failure requires restarting
+the app before switching again.
+
 ## Run
 
 Close other copies of Nexus Recoil. From administrator Command Prompt:

@@ -21,6 +21,8 @@ public partial class MainWindow : Window
     private readonly AppSettings  _settings;
     private bool _settingsSaveWarningShown;
     private readonly RecoilEngine _engine;
+    private readonly SwitchableMouseOutput _mouseOutput;
+    private readonly bool _canSwitchMouseOutput;
 
     private List<Profile> _customProfiles = new();
     private int _listeningTarget = -1;  // 0=toggle, 1=enable, 2=disable, 3=next, 4=prev
@@ -59,10 +61,13 @@ public partial class MainWindow : Window
     internal MainWindow(AppSettings settings, IMouseOutput? mouse = null)
     {
         _settings = settings;
-        _engine = new RecoilEngine(mouse);
+        _canSwitchMouseOutput = mouse is null or VdeviceMouseOutput;
+        _mouseOutput = new SwitchableMouseOutput(mouse ?? new WindowsMouseOutput(), mouse is VdeviceMouseOutput);
+        _engine = new RecoilEngine(_mouseOutput);
         _engine.OutputFailed += message => Dispatcher.BeginInvoke(new Action(() =>
         {
             SetActive(false);
+            DriverToggle.IsEnabled = false;
             MessageBox.Show(message + " Restart the app after reconnecting the driver.",
                 "Mouse Output Failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }));
@@ -149,8 +154,31 @@ public partial class MainWindow : Window
         });
     }
 
+    private void DriverToggle_Click(object sender, RoutedEventArgs e)
+    {
+        bool useDriver = DriverToggle.IsChecked == true;
+        SetActive(false);
+        try
+        {
+            _mouseOutput.Switch(useDriver, () => useDriver
+                ? new VdeviceMouseOutput() : new WindowsMouseOutput());
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or ObjectDisposedException)
+        {
+            DriverToggle.IsChecked = _mouseOutput.UsesVdevice;
+            MessageBox.Show(ex.Message, "Mouse Output", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
+        }
+        _settings.UseVdeviceDriver = useDriver;
+        SaveSettings();
+    }
+
     private void LoadSettingsIntoUi()
     {
+        DriverToggle.IsChecked = _mouseOutput.UsesVdevice;
+        DriverToggle.IsEnabled = _canSwitchMouseOutput;
+        if (!_canSwitchMouseOutput)
+            DriverToggle.ToolTip = "Restart without --kernel-mouse or --interception to use this toggle.";
         DownSlider.Value  = 12;
         UpSlider.Value    = 0;
         RightSlider.Value = 4;
