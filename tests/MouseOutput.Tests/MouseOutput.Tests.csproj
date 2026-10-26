@@ -10,5 +10,6 @@
     <Compile Include="../../source/Nexus-Recoil/Core/RecoilEngine.cs" Link="RecoilEngine.cs" />
     <Compile Include="../../source/Nexus-Recoil/Core/MouseOutput.cs" Link="MouseOutput.cs" />
     <Compile Include="../../source/Nexus-Recoil/Core/InterceptionMouseOutput.cs" Link="InterceptionMouseOutput.cs" />
+    <Compile Include="../../source/Nexus-Recoil/Core/VdeviceMouseOutput.cs" Link="VdeviceMouseOutput.cs" />
   </ItemGroup>
 </Project>

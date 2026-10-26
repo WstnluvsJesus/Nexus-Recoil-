@@ -55,3 +55,7 @@ is still required before using this backend.
 
 For the optional third-party Interception backend, see [Interception setup](INTERCEPTION.md)
 and launch with `--interception` after installing its driver and x64 library.
+
+For the Vdevice virtual USB mouse backend, see [Vdevice setup](VDEVICE.md).
+Use `--vdevice` with the native bridge and vendor driver installed; the public
+driver demo is limited to one hour per Windows boot.

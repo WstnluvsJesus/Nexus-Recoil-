@@ -65,16 +65,18 @@ public partial class App : Application
         IMouseOutput? mouse = null;
         bool kernelMouse = e.Args.Contains("--kernel-mouse", StringComparer.OrdinalIgnoreCase);
         bool interception = e.Args.Contains("--interception", StringComparer.OrdinalIgnoreCase);
-        if (kernelMouse && interception)
+        bool vdevice = e.Args.Contains("--vdevice", StringComparer.OrdinalIgnoreCase);
+        if ((kernelMouse ? 1 : 0) + (interception ? 1 : 0) + (vdevice ? 1 : 0) > 1)
         {
-            MessageBox.Show("Choose either --kernel-mouse or --interception.", "Mouse Output",
+            MessageBox.Show("Choose one mouse backend: --vdevice, --kernel-mouse, or --interception.", "Mouse Output",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
             return;
         }
         try
         {
-            if (kernelMouse) mouse = new KernelMouseOutput();
+            if (vdevice) mouse = new VdeviceMouseOutput();
+            else if (kernelMouse) mouse = new KernelMouseOutput();
             else if (interception) mouse = new InterceptionMouseOutput();
         }
         catch (System.ComponentModel.Win32Exception ex)
